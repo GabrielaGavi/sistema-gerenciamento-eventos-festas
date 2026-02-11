@@ -28,13 +28,18 @@ export type CashPaymentRequest = CashEntryRequest & {
   eventId: number;
 };
 
-export async function listCash() {
-  const response = await api.get<CashEntry[]>('/cash');
+type CashQueryParams = {
+  from?: string;
+  to?: string;
+};
+
+export async function listCash(params?: CashQueryParams) {
+  const response = await api.get<CashEntry[]>('/cash', { params });
   return response.data;
 }
 
-export async function getCashSummary() {
-  const response = await api.get<CashSummary>('/cash/summary');
+export async function getCashSummary(params?: CashQueryParams) {
+  const response = await api.get<CashSummary>('/cash/summary', { params });
   return response.data;
 }
 

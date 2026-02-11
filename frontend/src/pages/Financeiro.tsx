@@ -13,6 +13,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
+import axios from 'axios';
 import {
   CashEntry,
   CashEntryRequest,
@@ -23,12 +24,19 @@ import {
   getCashSummary,
   listCash
 } from '../api/cash';
+import { EventResponse, listEvents } from '../api/events';
 
 const paymentMethods = [
   { label: 'PIX', value: 'PIX' },
-  { label: 'Cartão', value: 'CARTAO' },
+  { label: 'Cartao', value: 'CARTAO' },
   { label: 'Dinheiro', value: 'DINHEIRO' },
-  { label: 'Transferência', value: 'TRANSFERENCIA' }
+  { label: 'Transferencia', value: 'TRANSFERENCIA' }
+] as const;
+
+const operationOptions = [
+  { label: 'Todos', value: 'TODOS' },
+  { label: 'Entradas', value: 'ENTRADA' },
+  { label: 'Saidas', value: 'SAIDA' }
 ] as const;
 
 const formatCurrency = (value: number | string) => {
@@ -42,6 +50,19 @@ const formatDateTime = (value?: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleString('pt-BR');
+};
+
+const buildBoundary = (date: string | null, mode: 'start' | 'end') => {
+  if (!date) return undefined;
+  const suffix = mode === 'start' ? 'T00:00:00' : 'T23:59:59';
+  return `${date}${suffix}`;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError(error) && typeof error.response?.data?.message === 'string') {
+    return error.response.data.message;
+  }
+  return fallback;
 };
 
 type EntryFormState = {
@@ -77,11 +98,16 @@ const initialExpenseForm: ExpenseFormState = {
 export function Financeiro() {
   const [entries, setEntries] = useState<CashEntry[]>([]);
   const [summary, setSummary] = useState<CashSummary | null>(null);
+  const [events, setEvents] = useState<EventResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openEntry, setOpenEntry] = useState(false);
   const [openExpense, setOpenExpense] = useState(false);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [operationFilter, setOperationFilter] = useState<'TODOS' | 'ENTRADA' | 'SAIDA'>('TODOS');
+  const [search, setSearch] = useState('');
   const [entryForm, setEntryForm] = useState<EntryFormState>(initialEntryForm);
   const [expenseForm, setExpenseForm] = useState<ExpenseFormState>(initialExpenseForm);
 
@@ -89,35 +115,71 @@ export function Financeiro() {
   const entradaLabel = useMemo(() => (summary ? formatCurrency(summary.entrada) : '-'), [summary]);
   const saidaLabel = useMemo(() => (summary ? formatCurrency(summary.saida) : '-'), [summary]);
 
+  const filteredEntries = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return entries
+      .filter((entry) => (operationFilter === 'TODOS' ? true : entry.operacao === operationFilter))
+      .filter((entry) => {
+        if (!term) return true;
+        return (
+          String(entry.id).includes(term) ||
+          (entry.observacao || '').toLowerCase().includes(term) ||
+          entry.formaPagamento.toLowerCase().includes(term) ||
+          entry.tipo.toLowerCase().includes(term)
+        );
+      })
+      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  }, [entries, operationFilter, search]);
+
   const loadCash = async () => {
     setLoading(true);
     setError(null);
+
+    const from = buildBoundary(fromDate || null, 'start');
+    const to = buildBoundary(toDate || null, 'end');
+
     try {
-      const [cashList, cashSummary] = await Promise.all([listCash(), getCashSummary()]);
+      const [cashList, cashSummary] = await Promise.all([listCash({ from, to }), getCashSummary({ from, to })]);
       setEntries(cashList);
       setSummary(cashSummary);
     } catch (err) {
-      setError('Não foi possível carregar o financeiro.');
+      setError(getErrorMessage(err, 'Nao foi possivel carregar o financeiro.'));
     } finally {
       setLoading(false);
     }
   };
 
+  const loadEventOptions = async () => {
+    try {
+      const data = await listEvents({ status: 'CONFIRMADO' });
+      setEvents(data);
+    } catch {
+      setEvents([]);
+    }
+  };
+
   useEffect(() => {
     void loadCash();
+  }, [fromDate, toDate]);
+
+  useEffect(() => {
+    void loadEventOptions();
   }, []);
 
   const handleCreateEntry = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
     setError(null);
+
     const parsedEventId = Number(entryForm.eventId);
     const parsedValor = Number(entryForm.valor.replace(',', '.'));
+
     if (!Number.isFinite(parsedEventId) || parsedEventId <= 0 || !Number.isFinite(parsedValor) || parsedValor <= 0) {
       setSaving(false);
-      setError('Preencha ID do evento e valor com números válidos.');
+      setError('Preencha evento e valor com numeros validos.');
       return;
     }
+
     try {
       await createEntry({
         formaPagamento: entryForm.formaPagamento,
@@ -130,7 +192,7 @@ export function Financeiro() {
       setEntryForm(initialEntryForm);
       await loadCash();
     } catch (err) {
-      setError('Não foi possível registrar a entrada.');
+      setError(getErrorMessage(err, 'Nao foi possivel registrar a entrada.'));
     } finally {
       setSaving(false);
     }
@@ -140,12 +202,14 @@ export function Financeiro() {
     event.preventDefault();
     setSaving(true);
     setError(null);
+
     const parsedValor = Number(expenseForm.valor.replace(',', '.'));
     if (!Number.isFinite(parsedValor) || parsedValor <= 0) {
       setSaving(false);
-      setError('Preencha o valor com um número válido.');
+      setError('Preencha o valor com um numero valido.');
       return;
     }
+
     try {
       await createExpense({
         formaPagamento: expenseForm.formaPagamento,
@@ -157,7 +221,7 @@ export function Financeiro() {
       setExpenseForm(initialExpenseForm);
       await loadCash();
     } catch (err) {
-      setError('Não foi possível registrar a saída.');
+      setError(getErrorMessage(err, 'Nao foi possivel registrar a saida.'));
     } finally {
       setSaving(false);
     }
@@ -169,12 +233,12 @@ export function Financeiro() {
         <Box>
           <Typography variant="h4">Financeiro</Typography>
           <Typography variant="body2" color="text.secondary">
-            Controle financeiro com entradas, saídas e saldo consolidado.
+            Controle financeiro com entradas, saidas e saldo consolidado.
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} flexWrap="wrap">
           <Button variant="outlined" onClick={() => setOpenExpense(true)}>
-            Inserir saída
+            Inserir saida
           </Button>
           <Button variant="contained" onClick={() => setOpenEntry(true)}>
             Inserir entrada
@@ -194,7 +258,7 @@ export function Financeiro() {
         <Card>
           <CardContent>
             <Typography variant="subtitle2" color="text.secondary">
-              Entradas do mês
+              Entradas do periodo
             </Typography>
             <Typography variant="h3">{entradaLabel}</Typography>
           </CardContent>
@@ -202,12 +266,53 @@ export function Financeiro() {
         <Card>
           <CardContent>
             <Typography variant="subtitle2" color="text.secondary">
-              Saídas do mês
+              Saidas do periodo
             </Typography>
             <Typography variant="h3">{saidaLabel}</Typography>
           </CardContent>
         </Card>
       </Box>
+
+      <Card>
+        <CardContent>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField
+              label="Buscar"
+              placeholder="ID, observacao, tipo ou pagamento"
+              fullWidth
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <TextField
+              select
+              label="Operacao"
+              value={operationFilter}
+              onChange={(event) => setOperationFilter(event.target.value as 'TODOS' | 'ENTRADA' | 'SAIDA')}
+              sx={{ minWidth: 160 }}
+            >
+              {operationOptions.map((item) => (
+                <MenuItem key={item.value} value={item.value}>
+                  {item.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Data inicial"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={fromDate}
+              onChange={(event) => setFromDate(event.target.value)}
+            />
+            <TextField
+              label="Data final"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={toDate}
+              onChange={(event) => setToDate(event.target.value)}
+            />
+          </Stack>
+        </CardContent>
+      </Card>
 
       {error && (
         <Typography color="error" variant="body2">
@@ -216,20 +321,20 @@ export function Financeiro() {
       )}
 
       <Stack spacing={2}>
-        {entries.length === 0 && !loading ? (
+        {filteredEntries.length === 0 && !loading ? (
           <Typography variant="body2" color="text.secondary">
-            Nenhuma movimentação encontrada.
+            Nenhuma movimentacao encontrada.
           </Typography>
         ) : (
-          entries.map((mov) => (
+          filteredEntries.map((mov) => (
             <Card key={mov.id}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary">
-                  #{mov.id} • {mov.operacao}
+                  #{mov.id} - {mov.operacao}
                 </Typography>
-                <Typography variant="h6">{mov.observacao || 'Movimentação'}</Typography>
+                <Typography variant="h6">{mov.observacao || 'Movimentacao'}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {formatDateTime(mov.data)} • {mov.formaPagamento}
+                  {formatDateTime(mov.data)} - {mov.formaPagamento}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Tipo: {mov.tipo}
@@ -248,14 +353,23 @@ export function Financeiro() {
         <DialogContent>
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }} onSubmit={handleCreateEntry}>
             <TextField
-              label="ID do evento"
-              type="text"
+              select
+              label="Evento"
               value={entryForm.eventId}
               onChange={(event) => setEntryForm((prev) => ({ ...prev, eventId: event.target.value }))}
-              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-              placeholder="Ex.: 1"
               required
-            />
+            >
+              {events.length === 0 && (
+                <MenuItem value="" disabled>
+                  Nenhum evento confirmado encontrado
+                </MenuItem>
+              )}
+              {events.map((ev) => (
+                <MenuItem key={ev.id} value={String(ev.id)}>
+                  #{ev.id} - {ev.client?.nome || 'Sem cliente'}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               select
               label="Forma de pagamento"
@@ -288,7 +402,7 @@ export function Financeiro() {
               onChange={(event) => setEntryForm((prev) => ({ ...prev, data: event.target.value }))}
             />
             <TextField
-              label="Observação"
+              label="Observacao"
               value={entryForm.observacao}
               onChange={(event) => setEntryForm((prev) => ({ ...prev, observacao: event.target.value }))}
               multiline
@@ -307,7 +421,7 @@ export function Financeiro() {
       </Dialog>
 
       <Dialog open={openExpense} onClose={() => setOpenExpense(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Registrar saída</DialogTitle>
+        <DialogTitle>Registrar saida</DialogTitle>
         <DialogContent>
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }} onSubmit={handleCreateExpense}>
             <TextField
@@ -342,7 +456,7 @@ export function Financeiro() {
               onChange={(event) => setExpenseForm((prev) => ({ ...prev, data: event.target.value }))}
             />
             <TextField
-              label="Observação"
+              label="Observacao"
               value={expenseForm.observacao}
               onChange={(event) => setExpenseForm((prev) => ({ ...prev, observacao: event.target.value }))}
               multiline

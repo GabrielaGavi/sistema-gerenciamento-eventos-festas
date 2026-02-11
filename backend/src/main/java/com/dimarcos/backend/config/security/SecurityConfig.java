@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -41,7 +42,9 @@ public class SecurityConfig {
                     "/api-docs/**"
                 ).permitAll()
                 .requestMatchers("/cash/**", "/payments/**").hasAnyRole("ADMIN", "FINANCEIRO")
-                .requestMatchers("/clients/**", "/events/**", "/dashboard/**").hasAnyRole("ADMIN", "ATENDENTE")
+                .requestMatchers(HttpMethod.GET, "/clients/**").hasAnyRole("ADMIN", "ATENDENTE", "FINANCEIRO")
+                .requestMatchers("/events/**", "/dashboard/**").hasAnyRole("ADMIN", "ATENDENTE", "FINANCEIRO")
+                .requestMatchers("/clients/**").hasAnyRole("ADMIN", "ATENDENTE")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

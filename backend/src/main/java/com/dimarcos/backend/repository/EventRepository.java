@@ -39,14 +39,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         where (:tipo is null or e.tipoEvento = :tipo)
           and (:status is null or e.statusEvento = :status)
           and (
-            :dataFrom is null
-            or e.dataHoraEvento >= :dataFrom
-            or e.dataHoraVisita >= :dataFrom
+            e.dataHoraEvento >= coalesce(:dataFrom, e.dataHoraEvento)
+            or e.dataHoraVisita >= coalesce(:dataFrom, e.dataHoraVisita)
           )
           and (
-            :dataTo is null
-            or e.dataHoraEvento <= :dataTo
-            or e.dataHoraVisita <= :dataTo
+            e.dataHoraEvento <= coalesce(:dataTo, e.dataHoraEvento)
+            or e.dataHoraVisita <= coalesce(:dataTo, e.dataHoraVisita)
           )
         """)
     List<Event> findAllWithFilters(
