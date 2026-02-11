@@ -1,0 +1,36 @@
+﻿:root {
+  color-scheme: light;
+  --brand-blue: #1e3a8a;
+  --brand-amber: #d97706;
+  --ink: #141414;
+  --mist: #f4f1ec;
+  --line: rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(1200px circle at 10% 10%, #ffffff 0%, #f8f5f0 45%, #f2efe9 100%);
+  color: var(--ink);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+@media (max-width: 980px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+
