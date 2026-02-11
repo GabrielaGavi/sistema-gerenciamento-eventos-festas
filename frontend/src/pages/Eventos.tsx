@@ -66,6 +66,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 export function Eventos() {
   const [events, setEvents] = useState<EventResponse[]>([]);
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [clientsError, setClientsError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EventStatus | 'TODOS'>('TODOS');
   const [dateFilter, setDateFilter] = useState('');
@@ -132,13 +133,23 @@ export function Eventos() {
         params.dataTo = `${dateFilter}T23:59:59`;
       }
 
-      const [eventsData, clientsData] = await Promise.all([listEvents(params), listClients()]);
+      const eventsData = await listEvents(params);
       setEvents(eventsData);
-      setClients(clientsData.map((client) => ({ id: client.id, nome: client.nome })));
     } catch (err) {
       setError(getErrorMessage(err, 'Não foi possível carregar eventos.'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadClientsOptions = async () => {
+    setClientsError(null);
+    try {
+      const clientsData = await listClients();
+      setClients(clientsData.map((client) => ({ id: client.id, nome: client.nome })));
+    } catch (err) {
+      setClients([]);
+      setClientsError(getErrorMessage(err, 'Não foi possível carregar clientes para o formulário.'));
     }
   };
 
@@ -284,10 +295,22 @@ export function Eventos() {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} flexWrap="wrap">
-          <Button variant="outlined" onClick={() => setOpenVisit(true)}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setOpenVisit(true);
+              void loadClientsOptions();
+            }}
+          >
             Criar visita
           </Button>
-          <Button variant="contained" onClick={() => setOpenParty(true)}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setOpenParty(true);
+              void loadClientsOptions();
+            }}
+          >
             Novo evento
           </Button>
         </Stack>
@@ -377,6 +400,11 @@ export function Eventos() {
       <Dialog open={openVisit} onClose={() => setOpenVisit(false)} fullWidth maxWidth="sm">
         <DialogTitle>Criar visita</DialogTitle>
         <DialogContent>
+          {clientsError && (
+            <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+              {clientsError}
+            </Typography>
+          )}
           <Box component="form" onSubmit={createVisitHandler} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
               select
@@ -385,6 +413,11 @@ export function Eventos() {
               onChange={(event) => setVisitForm((prev) => ({ ...prev, clientId: event.target.value }))}
               required
             >
+              {clients.length === 0 && (
+                <MenuItem value="" disabled>
+                  Nenhum cliente disponível
+                </MenuItem>
+              )}
               {clients.map((client) => (
                 <MenuItem key={client.id} value={String(client.id)}>
                   {client.nome} (#{client.id})
@@ -440,6 +473,11 @@ export function Eventos() {
       <Dialog open={openParty} onClose={() => setOpenParty(false)} fullWidth maxWidth="sm">
         <DialogTitle>Novo evento (festa)</DialogTitle>
         <DialogContent>
+          {clientsError && (
+            <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+              {clientsError}
+            </Typography>
+          )}
           <Box component="form" onSubmit={createPartyHandler} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
               select
@@ -448,6 +486,11 @@ export function Eventos() {
               onChange={(event) => setPartyForm((prev) => ({ ...prev, clientId: event.target.value }))}
               required
             >
+              {clients.length === 0 && (
+                <MenuItem value="" disabled>
+                  Nenhum cliente disponível
+                </MenuItem>
+              )}
               {clients.map((client) => (
                 <MenuItem key={client.id} value={String(client.id)}>
                   {client.nome} (#{client.id})
