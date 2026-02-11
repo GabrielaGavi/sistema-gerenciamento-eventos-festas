@@ -70,7 +70,7 @@ public class CashService {
     @Transactional
     public CashEntry createEntry(CashPaymentRequest request) {
         Event event = eventRepository.findById(request.getEventId())
-            .orElseThrow(() -> new ResourceNotFoundException("Evento nao encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado"));
         if (request.getValor().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("Valor da entrada deve ser maior que zero");
         }
@@ -102,7 +102,7 @@ public class CashService {
     @Transactional
     public CashEntry createRefund(CashPaymentRequest request) {
         Event event = eventRepository.findById(request.getEventId())
-            .orElseThrow(() -> new ResourceNotFoundException("Evento nao encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado"));
         if (request.getValor().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("Valor do reembolso deve ser maior que zero");
         }

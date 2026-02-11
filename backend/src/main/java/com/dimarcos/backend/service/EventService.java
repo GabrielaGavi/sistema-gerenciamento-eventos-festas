@@ -54,7 +54,7 @@ public class EventService {
 
     public Event get(Long id) {
         return eventRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Evento nao encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado"));
     }
 
     @Transactional
@@ -75,7 +75,7 @@ public class EventService {
     @Transactional
     public Event createParty(EventPartyRequest request) {
         Client client = clientRepository.findById(request.getClientId())
-            .orElseThrow(() -> new ResourceNotFoundException("Cliente nao encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
 
         validateNoConflict(request.getDataHoraEvento(), null);
 
@@ -237,7 +237,7 @@ public class EventService {
         }
         if (hasId) {
             return clientRepository.findById(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente nao encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
         }
         if (clientRepository.existsByCpf(clientRequest.getCpf())) {
             throw new BusinessException("CPF ja cadastrado");

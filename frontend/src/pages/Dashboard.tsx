@@ -36,7 +36,7 @@ export function Dashboard() {
           partiesAgenda: 0,
           visitsAgenda: 0
         });
-        setError('Nao foi possivel carregar os dados do dashboard.');
+        setError('Não foi possível carregar os dados do dashboard.');
       }
     };
 
@@ -68,9 +68,6 @@ export function Dashboard() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box>
         <Typography variant="h4">Resumo do dia</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Dados atualizados em tempo real a partir da API.
-        </Typography>
       </Box>
 
       {error && (
@@ -99,7 +96,7 @@ export function Dashboard() {
 
       <Card>
         <CardContent>
-          <Typography variant="h6">Operacoes prioritarias</Typography>
+          <Typography variant="h6">Operações prioritárias</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             Revise contratos pendentes, agenda de visitas e financeiro da semana.
           </Typography>

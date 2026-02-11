@@ -97,7 +97,7 @@ export function Financeiro() {
       setEntries(cashList);
       setSummary(cashSummary);
     } catch (err) {
-      setError('Nao foi possivel carregar o financeiro.');
+      setError('Não foi possível carregar o financeiro.');
     } finally {
       setLoading(false);
     }
@@ -115,7 +115,7 @@ export function Financeiro() {
     const parsedValor = Number(entryForm.valor.replace(',', '.'));
     if (!Number.isFinite(parsedEventId) || parsedEventId <= 0 || !Number.isFinite(parsedValor) || parsedValor <= 0) {
       setSaving(false);
-      setError('Preencha ID do evento e valor com numeros validos.');
+      setError('Preencha ID do evento e valor com números válidos.');
       return;
     }
     try {
@@ -143,7 +143,7 @@ export function Financeiro() {
     const parsedValor = Number(expenseForm.valor.replace(',', '.'));
     if (!Number.isFinite(parsedValor) || parsedValor <= 0) {
       setSaving(false);
-      setError('Preencha o valor com um numero valido.');
+      setError('Preencha o valor com um número válido.');
       return;
     }
     try {

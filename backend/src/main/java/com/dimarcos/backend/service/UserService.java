@@ -23,7 +23,7 @@ public class UserService {
     @Transactional
     public User register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new BusinessException("Usuario ja existe");
+            throw new BusinessException("Usuário já existe");
         }
         User user = new User();
         user.setUsername(request.getUsername());

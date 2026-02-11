@@ -33,7 +33,7 @@ public class ClientService {
 
     public Client get(Long id) {
         return clientRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Cliente nao encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
     }
 
     @Transactional

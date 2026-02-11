@@ -83,7 +83,7 @@ export function Sidebar() {
         }}
       >
         <Typography variant="caption" color="text.secondary">
-          Proxima semana
+          Próxima semana
         </Typography>
         <Typography variant="h6" sx={{ mt: 1 }}>
           {parties} festas + {visits} visitas

@@ -48,9 +48,9 @@ export function Login() {
       navigate('/dashboard');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
-        setError('Usuario ou senha invalidos.');
+        setError('Usuário ou senha inválidos.');
       } else {
-        setError('Nao foi possivel autenticar. Verifique se o backend esta online.');
+        setError('Não foi possível autenticar. Verifique se o backend está online.');
       }
     } finally {
       setLoading(false);
@@ -69,13 +69,13 @@ export function Login() {
         password,
         role: registerRole
       });
-      setInfo('Usuario registrado com sucesso. Agora faca login.');
+      setInfo('Usuário registrado com sucesso. Agora faça login.');
       setMode('login');
     } catch (err) {
       if (axios.isAxiosError(err) && typeof err.response?.data?.message === 'string') {
         setError(err.response.data.message);
       } else {
-        setError('Nao foi possivel registrar usuario.');
+        setError('Não foi possível registrar usuário.');
       }
     } finally {
       setLoading(false);
@@ -101,7 +101,7 @@ export function Login() {
       >
         <Typography variant="h2">Bem-vindo ao painel Dimarcos.</Typography>
         <Typography variant="body1" color="text.secondary">
-          Controle de festas, contratos, visitas e financeiro em um so lugar.
+          Controle de festas, contratos, visitas e financeiro em um só lugar.
         </Typography>
         <Box
           sx={{
@@ -112,7 +112,7 @@ export function Login() {
           }}
         >
           <Typography variant="subtitle1" fontWeight={600}>
-            Status rapido
+            Status rápido
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Acesse para ver os indicadores em tempo real.
@@ -170,7 +170,7 @@ export function Login() {
               sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
             >
               <TextField
-                label="Usuario"
+                label="Usuário"
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
                 required
@@ -197,7 +197,7 @@ export function Login() {
                 </TextField>
               )}
               <Button size="large" variant="contained" type="submit" disabled={loading}>
-                {loading ? 'Processando...' : mode === 'login' ? 'Entrar no painel' : 'Registrar usuario'}
+                {loading ? 'Processando...' : mode === 'login' ? 'Entrar no painel' : 'Registrar usuário'}
               </Button>
             </Box>
           </CardContent>

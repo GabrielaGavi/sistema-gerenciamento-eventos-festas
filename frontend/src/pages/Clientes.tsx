@@ -43,7 +43,7 @@ export function Clientes() {
       const data = await listClients(searchTerm);
       setClientes(data);
     } catch (err) {
-      setError('Nao foi possivel carregar clientes.');
+      setError('Não foi possível carregar clientes.');
     } finally {
       setLoading(false);
     }
@@ -100,11 +100,11 @@ export function Clientes() {
       if (axios.isAxiosError(err) && typeof err.response?.data?.message === 'string') {
         setError(err.response.data.message);
       } else if (axios.isAxiosError(err) && err.response?.status === 403) {
-        setError('Sem permissao para salvar cliente com este perfil.');
+        setError('Sem permissão para salvar cliente com este perfil.');
       } else if (axios.isAxiosError(err) && err.response?.status === 401) {
-        setError('Sessao expirada. Faca login novamente.');
+        setError('Sessão expirada. Faça login novamente.');
       } else {
-        setError('Nao foi possivel salvar o cliente.');
+        setError('Não foi possível salvar o cliente.');
       }
     } finally {
       setSaving(false);
@@ -117,7 +117,7 @@ export function Clientes() {
       await deleteClient(client.id);
       await loadClients(termo);
     } catch (err) {
-      setError('Nao foi possivel excluir o cliente.');
+      setError('Não foi possível excluir o cliente.');
     }
   };
 
