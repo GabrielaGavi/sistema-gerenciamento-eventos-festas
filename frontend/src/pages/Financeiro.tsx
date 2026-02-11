@@ -52,6 +52,12 @@ const formatDateTime = (value?: string) => {
   return date.toLocaleString('pt-BR');
 };
 
+const formatEventOption = (event: EventResponse) => {
+  const when = event.dataHoraEvento || event.dataHoraVisita;
+  const kind = event.tipoEvento === 'FESTA' ? 'Festa' : 'Visita';
+  return `#${event.id} - ${kind} - ${formatDateTime(when)} - ${event.statusEvento} - ${event.client?.nome || 'Sem cliente'}`;
+};
+
 const buildBoundary = (date: string | null, mode: 'start' | 'end') => {
   if (!date) return undefined;
   const suffix = mode === 'start' ? 'T00:00:00' : 'T23:59:59';
@@ -151,8 +157,16 @@ export function Financeiro() {
 
   const loadEventOptions = async () => {
     try {
-      const data = await listEvents({ status: 'CONFIRMADO' });
-      setEvents(data);
+      const data = await listEvents();
+      setEvents(
+        data
+          .filter((event) => event.tipoEvento === 'FESTA' && event.statusEvento !== 'CANCELADO')
+          .sort((a, b) => {
+            const dateA = new Date(a.dataHoraEvento || a.dataHoraVisita || 0).getTime();
+            const dateB = new Date(b.dataHoraEvento || b.dataHoraVisita || 0).getTime();
+            return dateB - dateA;
+          })
+      );
     } catch {
       setEvents([]);
     }
@@ -361,12 +375,12 @@ export function Financeiro() {
             >
               {events.length === 0 && (
                 <MenuItem value="" disabled>
-                  Nenhum evento confirmado encontrado
+                  Nenhuma festa disponivel para entrada
                 </MenuItem>
               )}
               {events.map((ev) => (
                 <MenuItem key={ev.id} value={String(ev.id)}>
-                  #{ev.id} - {ev.client?.nome || 'Sem cliente'}
+                  {formatEventOption(ev)}
                 </MenuItem>
               ))}
             </TextField>

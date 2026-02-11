@@ -17,8 +17,8 @@ public interface CashEntryRepository extends JpaRepository<CashEntry, Long> {
         select coalesce(sum(case when c.operacao = 'ENTRADA' then c.valor else 0 end), 0),
                coalesce(sum(case when c.operacao = 'SAIDA' then c.valor else 0 end), 0)
         from CashEntry c
-        where (:from is null or c.data >= :from)
-          and (:to is null or c.data <= :to)
+        where c.data >= coalesce(:from, c.data)
+          and c.data <= coalesce(:to, c.data)
         """)
     Object[] sumEntriesAndExits(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

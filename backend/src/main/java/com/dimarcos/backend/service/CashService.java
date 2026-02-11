@@ -12,6 +12,7 @@ import com.dimarcos.backend.domain.Event;
 import com.dimarcos.backend.domain.PaymentHistory;
 import com.dimarcos.backend.domain.enums.CashOperation;
 import com.dimarcos.backend.domain.enums.CashType;
+import com.dimarcos.backend.domain.enums.EventType;
 import com.dimarcos.backend.domain.enums.PaymentType;
 import com.dimarcos.backend.dto.CashEntryRequest;
 import com.dimarcos.backend.dto.CashPaymentRequest;
@@ -70,10 +71,16 @@ public class CashService {
     @Transactional
     public CashEntry createEntry(CashPaymentRequest request) {
         Event event = eventRepository.findById(request.getEventId())
-            .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Evento nao encontrado"));
+
+        if (event.getTipoEvento() != EventType.FESTA) {
+            throw new BusinessException("Entrada so pode ser registrada para festas");
+        }
+
         if (request.getValor().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("Valor da entrada deve ser maior que zero");
         }
+
         LocalDateTime data = resolveDate(request.getData());
 
         PaymentHistory history = new PaymentHistory();
@@ -102,7 +109,7 @@ public class CashService {
     @Transactional
     public CashEntry createRefund(CashPaymentRequest request) {
         Event event = eventRepository.findById(request.getEventId())
-            .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Evento nao encontrado"));
         if (request.getValor().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("Valor do reembolso deve ser maior que zero");
         }
