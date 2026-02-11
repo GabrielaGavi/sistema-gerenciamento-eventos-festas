@@ -143,7 +143,7 @@ export function Financeiro() {
       setEntries(cashList);
       setSummary(cashSummary);
     } catch (err) {
-      setError(getErrorMessage(err, 'Nao foi possivel carregar o financeiro.'));
+      setError(getErrorMessage(err, 'Não foi possível carregar o financeiro.'));
     } finally {
       setLoading(false);
     }
@@ -176,7 +176,7 @@ export function Financeiro() {
 
     if (!Number.isFinite(parsedEventId) || parsedEventId <= 0 || !Number.isFinite(parsedValor) || parsedValor <= 0) {
       setSaving(false);
-      setError('Preencha evento e valor com numeros validos.');
+      setError('Preencha evento e valor com números válidos.');
       return;
     }
 
@@ -192,7 +192,7 @@ export function Financeiro() {
       setEntryForm(initialEntryForm);
       await loadCash();
     } catch (err) {
-      setError(getErrorMessage(err, 'Nao foi possivel registrar a entrada.'));
+      setError(getErrorMessage(err, 'Não foi possível registrar a entrada.'));
     } finally {
       setSaving(false);
     }
@@ -206,7 +206,7 @@ export function Financeiro() {
     const parsedValor = Number(expenseForm.valor.replace(',', '.'));
     if (!Number.isFinite(parsedValor) || parsedValor <= 0) {
       setSaving(false);
-      setError('Preencha o valor com um numero valido.');
+      setError('Preencha o valor com um número válido.');
       return;
     }
 
@@ -221,7 +221,7 @@ export function Financeiro() {
       setExpenseForm(initialExpenseForm);
       await loadCash();
     } catch (err) {
-      setError(getErrorMessage(err, 'Nao foi possivel registrar a saida.'));
+      setError(getErrorMessage(err, 'Não foi possível registrar a saída.'));
     } finally {
       setSaving(false);
     }
