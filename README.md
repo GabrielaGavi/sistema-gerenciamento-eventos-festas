@@ -1,10 +1,10 @@
 # Sistema de Gerenciamento de Eventos
 
-Aplicação full stack para gestão operacional de uma casa de eventos, com foco em agenda de visitas e festas, controle de clientes, financeiro (entradas/saídas/reembolsos), histórico de pagamentos e autenticação por perfis.
+Aplicação full stack para gestão operacional de uma empresa de eventos, com foco em agenda de visitas e festas, controle de clientes, financeiro (entradas/saídas/reembolsos), histórico de pagamentos e autenticação por perfis.
 
 ---
 
-## 📌 Visão Geral
+## Visão Geral
 
 O projeto foi desenvolvido para centralizar o fluxo de trabalho de uma operação de eventos em um único sistema, permitindo:
 
@@ -21,7 +21,7 @@ A solução é composta por:
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 ### 1) Autenticação e autorização
 - Login com emissão de token JWT.
@@ -63,7 +63,7 @@ A solução é composta por:
 
 ---
 
-## 🧱 Arquitetura do Backend (camadas)
+## Arquitetura do Backend
 
 Estrutura orientada a camadas para facilitar manutenção e evolução:
 
@@ -77,7 +77,7 @@ Estrutura orientada a camadas para facilitar manutenção e evolução:
 
 ---
 
-## 🛠️ Tecnologias
+## Tecnologias
 
 ### Backend
 - Java 17
@@ -101,7 +101,7 @@ Estrutura orientada a camadas para facilitar manutenção e evolução:
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```bash
 .
